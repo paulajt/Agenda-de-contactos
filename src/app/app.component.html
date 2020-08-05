@@ -1,0 +1,222 @@
+<div class="app">
+	<div class="rectangle"></div>
+	<div class="header">
+		<img src="https://i.ibb.co/CByv1JP/ndice-1.png" alt="icono" title="Agenda de contactos">
+	<h1 class="title1">Address Book</h1>
+	</div>
+	
+	<!--Formulario-->
+	<div *ngIf="editingContact==false && showContactsStored==false && showContactFound==false" class="form">
+		<h2>Nuevo contacto</h2>
+		<div class="inputs">
+			<label for="name">
+				<pre>Name</pre>
+				<input type="text" name="name" placeholder="Name" (keyup.enter)="saveContact()" (focus)="nameOnFocus()" (blur)="validateName()" [class.error]="errorInName" [(ngModel)]="name"/>
+				<p class="errors" *ngIf="errorInName==true">{{ nameErrorMesagge }}</p>
+			</label>
+
+			<label for="phone">
+				<pre>Phone</pre>
+				<input type="tel" name="phone" placeholder="Phone" (keyup.enter)="saveContact()" (focus)="phoneOnFocus()" (blur)="validatePhone()" [class.error]="errorInPhone" [(ngModel)]="phone"/>
+				<p class="errors" *ngIf="errorInPhone==true">{{ phoneErrorMesagge }}</p>
+			</label>
+
+			<label for="email">
+				<pre>Email</pre>
+				<input type="email" name="email" placeholder="eMail" (keyup.enter)="saveContact()" (focus)="emailOnFocus()" (blur)="validateEmail()" [class.error]="errorInEmail" [(ngModel)]="email" id="inputEmail"/>
+				<p class="errors" *ngIf="errorInEmail==true">{{ emailErrorMesagge }}</p>
+			</label>
+			<button id="saveButton" type='submit' (click)='saveContact()'>Guardar</button>
+		</div>
+		<div class="formButtons">
+			
+			<button id="showContacts" title="Ver mis contactos" type='button' (click)='showContacts()'><fa-icon class="fa-2x" [icon]="faAddressBook"></fa-icon></button>
+			
+			<span *ngIf="contactSave==true">El contacto se ha guardado con éxito</span>
+			
+		</div>
+	</div>
+	
+	<!--Contactos-->
+	<h2 *ngIf="contacts.length > 0 && showContactsStored==true && editingContact==false" id="titleList">Contactos guardados</h2>
+	<div class="contactList">
+		
+		<div *ngIf="contacts.length > 1 && showContactsStored==true && editingContact==false" class="search">
+			<input  type="text" name="contactToSearch" placeholder="Nombre o eMail" [(ngModel)]="contactToSearch"/>
+
+			<button type="button" (click)="searchContact()" title="Buscar contacto">
+				<fa-icon [icon]="faSearch"></fa-icon>
+			</button>
+		</div>
+
+		<div *ngIf="contacts.length > 0 && showContactsStored==true && editingContact==false" class="buttons">
+			
+				<button type="button" id="buttonNewContact" (click)="storeNewContact()"
+				title="Nuevo contacto">
+					<fa-icon [icon]="faPlus"></fa-icon>
+				</button>
+				
+				<button type="button" id="buttonAllContacted" (click)="contactedAll()"
+				title="Todos contactados">
+					<fa-icon [icon]="faCheck"></fa-icon>
+				</button>
+				<button type="button" id="buttonAllHidden" (click)="hideContacted()"
+				title="Ocultar contactados">
+					<fa-icon [icon]="faEyeSlash"></fa-icon>
+				</button>
+				<button type="button" id="buttonAllShowed" (click)="showAll()"
+				title="Mostrar todos">
+					<fa-icon [icon]="faEye"></fa-icon>
+				</button>
+				<button type="button" id="buttonAllDeleted" (click)="deleteAll()"
+				title="Eliminar todos">
+					<fa-icon [icon]="faTrash"></fa-icon>
+				</button>
+			
+		</div>
+		
+		<div *ngIf="contacts.length > 0 && showContactsStored==true && editingContact==false">
+			
+			<table class="tableContacts">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Phone</th>
+						<th>Email</th>
+						<th id='thActions'>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let contact of contacts" [hidden]="contact.hide==true">
+						<td [class.contacted]="contact.wasContacted==true">
+							{{contact.name}}
+						</td>
+						<td [class.contacted]="contact.wasContacted==true">
+							{{contact.phone}}
+						</td>
+						<td [class.contacted]="contact.wasContacted==true">
+							{{contact.email}}
+						</td>
+						<td class="actions">
+							<button type="button"
+								title="Está contactado"
+								id="buttonContacted" 
+								(click)="contacted(contact)">
+								<fa-icon [icon]="faCheck"></fa-icon>
+							</button>
+						
+							<button type="button" *ngIf="contact.wasContacted==true" 
+								title="Ocultar contacto"
+								id="buttonHidden"
+								(click)="hide(contact)">
+								<fa-icon [icon]="faEyeSlash"></fa-icon>
+							</button>
+		
+							<button type="button" 
+								title="Editar contacto"
+								id="buttonEdited"
+								(click)="edit(contact)">
+								<fa-icon [icon]="faEdit"></fa-icon>
+							</button>
+						
+							<button type="button" 
+								title="Eliminar contacto"
+								id="buttonDeleted"
+								(click)="delete(contact)">
+								<fa-icon [icon]="faTrash"></fa-icon>
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>	
+	<!--Editar Contacto-->
+	<div *ngIf="editingContact==true" id="containerEdit">
+		<h2>Editar contacto</h2>
+		<div *ngFor="let contact of contacts">
+			<div *ngIf="contact.edit == true">
+				<label for="newName">
+					<pre>Name</pre>
+					<input type="text" name="newName" placeholder= {{contact.name}} (keyup.enter)="updateContact(contact)" (focus)="nameOnFocus()" (blur)="validateName()"  [(ngModel)]="name"/>
+					<p class="errors" *ngIf="errorInName==true">{{ nameErrorMesagge }}</p>
+				</label>	
+				
+				<label for="newPhone">
+					<pre>Phone</pre>
+					<input type="tel" name="newPhone" placeholder= {{contact.phone}} (keyup.enter)="updateContact(contact)" (focus)="phoneOnFocus()" (blur)="validatePhone()"  [(ngModel)]="phone"/>
+					<p class="errors" *ngIf="errorInPhone==true">{{ phoneErrorMesagge }}</p>
+				</label>
+				
+				<label for="newEmail">
+					<pre>Email</pre>
+					<input type="email" name="newEmail" placeholder= {{contact.email}} (keyup.enter)="updateContact(contact)" (focus)="emailOnFocus()" (blur)="validateEmail()"  [(ngModel)]="email"/>
+					<p class="errors" *ngIf="errorInEmail==true">{{ emailErrorMesagge }}</p>
+				</label>	
+				<div id="editButton">
+				<button id="updateButton" type='submit' (click)='updateContact(contact)'>Actualizar</button>
+					<div *ngIf="contactSave==true">
+						<span>El contacto se ha modificado con éxito</span>	
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!--Resultado busqueda-->
+	<h3 *ngIf="showContactFound==true && editingContact==false">Contactos encontrados</h3>
+	<table *ngIf="showContactFound==true" class="tableContacts">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Phone</th>
+				<th>Email</th>
+				<th id='thActions'>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let contact of contactFound" [hidden]="contact.hide==true">
+				<td [class.contacted]="contact.wasContacted==true">
+					{{contact.name}}
+				</td>
+				<td [class.contacted]="contact.wasContacted==true">
+					{{contact.phone}}
+				</td>
+				<td [class.contacted]="contact.wasContacted==true">
+					{{contact.email}}
+				</td>
+				<td class="actions">
+					<button type="button"
+						title="Está contactado"
+						id="buttonContacted" 
+						(click)="contacted(contact)">
+						<fa-icon [icon]="faCheck"></fa-icon>
+					</button>
+				
+					<button type="button" *ngIf="contact.wasContacted==true" 
+						title="Ocultar contacto"
+						id="buttonHidden"
+						(click)="hide(contact)">
+						<fa-icon [icon]="faEyeSlash"></fa-icon>
+					</button>
+
+					<button type="button" 
+						title="Editar contacto"
+						id="buttonEdited"
+						(click)="edit(contact)">
+						<fa-icon [icon]="faEdit"></fa-icon>
+					</button>
+				
+					<button type="button" 
+						title="Eliminar contacto"
+						id="buttonDeleted"
+						(click)="delete(contact)">
+						<fa-icon [icon]="faTrash"></fa-icon>
+					</button>
+				</td>
+			</tr>
+			
+		</tbody>
+	</table>
+	<button *ngIf="showContactFound==true" type="button" (click)="back()">Volver</button>
+</div>
